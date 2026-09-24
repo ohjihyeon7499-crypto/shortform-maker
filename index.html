@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>숏폼 메이커</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🎬 숏폼 메이커</h1>
+    <span class="hint">9:16 · 1080×1920 세로 영상</span>
+  </header>
+
+  <main class="layout">
+    <!-- 왼쪽: 편집 패널 -->
+    <section class="panel editor">
+      <div class="add-row">
+        <label class="btn primary">
+          + 사진/영상 추가
+          <input id="fileInput" type="file" accept="image/*,video/*" multiple hidden />
+        </label>
+        <button id="addTextSlide" class="btn">+ 텍스트 슬라이드</button>
+      </div>
+      <p class="drop-hint">파일을 이 화면에 끌어다 놓아도 추가돼요.</p>
+
+      <ol id="clipList" class="clip-list"></ol>
+      <p id="emptyMsg" class="empty">아직 클립이 없어요. 사진이나 영상을 추가해 보세요.</p>
+
+      <details class="settings" open>
+        <summary>전체 설정</summary>
+
+        <label class="field">
+          <span>상단 제목 (영상 내내 표시)</span>
+          <input id="titleText" type="text" placeholder="예: 3분 만에 끝내는 계란말이" />
+        </label>
+
+        <div class="grid2">
+          <label class="field">
+            <span>제목 크기</span>
+            <input id="titleSize" type="range" min="40" max="140" value="84" />
+          </label>
+          <label class="field">
+            <span>제목 색</span>
+            <input id="titleColor" type="color" value="#ffe14d" />
+          </label>
+          <label class="field">
+            <span>자막 크기</span>
+            <input id="captionSize" type="range" min="36" max="120" value="68" />
+          </label>
+          <label class="field">
+            <span>자막 색</span>
+            <input id="captionColor" type="color" value="#ffffff" />
+          </label>
+          <label class="field">
+            <span>자막 위치</span>
+            <select id="captionPos">
+              <option value="bottom">아래</option>
+              <option value="middle">가운데</option>
+              <option value="top">위</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>자막 스타일</span>
+            <select id="captionStyle">
+              <option value="outline">외곽선</option>
+              <option value="box">반투명 박스</option>
+              <option value="plain">기본</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="checks">
+          <label><input id="transition" type="checkbox" checked /> 페이드 전환</label>
+          <label><input id="kenBurns" type="checkbox" checked /> 사진 줌 효과</label>
+          <label><input id="progressBar" type="checkbox" checked /> 진행 바</label>
+        </div>
+
+        <div class="field">
+          <span>배경음악</span>
+          <div class="bgm-row">
+            <label class="btn small">
+              음악 선택
+              <input id="bgmInput" type="file" accept="audio/*" hidden />
+            </label>
+            <span id="bgmName" class="muted">없음</span>
+            <button id="bgmRemove" class="btn small ghost" hidden>삭제</button>
+          </div>
+          <label class="field inline">
+            <span>음악 볼륨</span>
+            <input id="bgmVolume" type="range" min="0" max="1" step="0.05" value="0.5" />
+          </label>
+        </div>
+      </details>
+    </section>
+
+    <!-- 오른쪽: 미리보기 -->
+    <section class="panel preview">
+      <div class="stage-wrap">
+        <canvas id="stage" width="1080" height="1920"></canvas>
+      </div>
+
+      <div class="transport">
+        <button id="playBtn" class="btn round" aria-label="재생">▶</button>
+        <input id="seek" type="range" min="0" max="0" step="0.01" value="0" />
+        <span id="timeLabel" class="time">0:00 / 0:00</span>
+      </div>
+
+      <div class="export-row">
+        <button id="exportBtn" class="btn primary wide">⬇ 영상 내보내기</button>
+        <button id="cancelExport" class="btn ghost" hidden>취소</button>
+      </div>
+      <div id="exportStatus" class="status" hidden>
+        <div class="bar"><div id="exportBar"></div></div>
+        <span id="exportText"></span>
+      </div>
+      <p class="muted small-note">내보내기는 영상 길이만큼 실시간으로 녹화돼요. 녹화 중에는 이 탭을 열어 두세요.</p>
+    </section>
+  </main>
+
+  <template id="clipTemplate">
+    <li class="clip">
+      <div class="thumb"></div>
+      <div class="clip-body">
+        <div class="clip-head">
+          <strong class="clip-name"></strong>
+          <div class="clip-actions">
+            <button class="icon" data-act="up" title="위로">↑</button>
+            <button class="icon" data-act="down" title="아래로">↓</button>
+            <button class="icon danger" data-act="remove" title="삭제">✕</button>
+          </div>
+        </div>
+        <textarea class="caption" rows="2" placeholder="자막 입력 (줄바꿈 가능)"></textarea>
+        <div class="clip-opts"></div>
+      </div>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
