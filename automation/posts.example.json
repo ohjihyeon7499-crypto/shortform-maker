@@ -1,0 +1,59 @@
+{
+  "defaults": {
+    "mode": "draft",
+    "privacy": "PUBLIC_TO_EVERYONE",
+    "slide_seconds": 2.5,
+    "end_seconds": 3,
+    "zoom": true,
+    "bgm": null,
+    "bgm_volume": 0.8,
+    "font": null,
+    "cta": "지금 토스에서\n바로 받아가세요",
+    "button": "프로필 링크 클릭",
+    "caption_include_link": false,
+    "hashtags": ["토스", "앱테크", "짠테크", "꿀팁"],
+    "theme": {
+      "bg_top": "#0050FF",
+      "bg_bottom": "#001A66",
+      "text_color": "#FFFFFF",
+      "title_color": "#FFE14D",
+      "accent": "#FFE14D"
+    }
+  },
+  "linkhub": {
+    "out_dir": "../docs",
+    "title": "토스 혜택 모음",
+    "subtitle": "영상에서 본 혜택, 여기서 눌러서 받아가세요",
+    "button": "토스에서 열기",
+    "footer": "링크를 누르면 토스 앱으로 이동합니다. 혜택 조건은 토스 이벤트 안내를 확인하세요."
+  },
+  "posts": [
+    {
+      "id": "toss-001",
+      "title": "토스 숨은 혜택",
+      "slides": [
+        { "text": "아직도 이거\n모르는 사람?" },
+        { "text": "토스 친구 초대하면\n둘 다 혜택 받아요" },
+        { "text": "링크 누르고\n가입만 하면 끝" }
+      ],
+      "toss_link": "https://toss.me/여기에-내-공유링크",
+      "link_title": "토스 친구 초대 혜택",
+      "link_desc": "가입하면 나도 친구도 혜택",
+      "caption": "토스 혜택 같이 받아요 👉 프로필 링크에서 바로!"
+    },
+    {
+      "id": "toss-002",
+      "title": "매일 돈 버는 루틴",
+      "slides": [
+        { "text": "하루 1분 투자로\n용돈 버는 법" },
+        { "text": "1. 만보기 켜두기" },
+        { "text": "2. 매일 행운퀴즈 풀기" },
+        { "text": "3. 친구와 함께 받기" }
+      ],
+      "toss_link": "https://toss.me/여기에-두번째-링크",
+      "link_title": "토스 함께 받기",
+      "link_desc": "같이 누르면 둘 다 포인트",
+      "caption": "매일 1분 앱테크 루틴 저장해두세요 📌 링크는 프로필에!"
+    }
+  ]
+}

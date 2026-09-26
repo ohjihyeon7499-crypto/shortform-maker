@@ -13,6 +13,10 @@ python3 -m http.server 8000
 
 `index.html`을 더블클릭해서 열어도 동작하지만, 로컬 서버로 여는 쪽이 더 안정적입니다. **Chrome이나 Edge 최신 버전**을 권장합니다.
 
+## 🤖 틱톡 자동 업로드 (토스 링크)
+
+게시물 목록만 적어 두면 영상 제작 → 링크 모음 페이지 → 틱톡 업로드까지 자동으로 합니다. 👉 [automation/README.md](automation/README.md)
+
 ## 기능
 
 | 기능 | 설명 |

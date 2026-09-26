@@ -1,0 +1,6 @@
+automation/.env
+automation/.tiktok_token.json
+automation/state.json
+automation/out/
+automation/posts.json
+__pycache__/
