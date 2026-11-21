@@ -6,13 +6,16 @@
   <title>숏폼 메이커</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <h1>🎬 숏폼 메이커</h1>
     <span class="hint">9:16 · 1080×1920 세로 영상</span>
+    <span class="spacer"></span>
+    <span id="saveStatus" class="muted save-status"></span>
+    <button id="newProject" class="btn small ghost">새 프로젝트</button>
   </header>
 
   <main class="layout">
@@ -25,7 +28,8 @@
         </label>
         <button id="addTextSlide" class="btn">+ 텍스트 슬라이드</button>
       </div>
-      <p class="drop-hint">파일을 이 화면에 끌어다 놓아도 추가돼요.</p>
+      <p class="drop-hint">파일을 화면에 끌어다 놓아도 추가돼요. 클립은 ⠿ 손잡이를 끌어서 순서를 바꿀 수 있어요.<br />
+        자막에서 <b>*별표*</b>로 감싼 글자는 강조색으로 표시돼요.</p>
 
       <ol id="clipList" class="clip-list"></ol>
       <p id="emptyMsg" class="empty">아직 클립이 없어요. 사진이나 영상을 추가해 보세요.</p>
@@ -40,12 +44,26 @@
 
         <div class="grid2">
           <label class="field">
+            <span>글꼴</span>
+            <select id="fontFamily">
+              <option value="noto">노토 산스 (굵게)</option>
+              <option value="blackhan">검은고딕</option>
+              <option value="dohyeon">도현체</option>
+              <option value="jua">주아체</option>
+              <option value="pen">나눔손글씨 펜</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>강조 색 (*별표* 글자)</span>
+            <input id="highlightColor" type="color" value="#ffe14d" />
+          </label>
+          <label class="field">
             <span>제목 크기</span>
             <input id="titleSize" type="range" min="40" max="140" value="84" />
           </label>
           <label class="field">
             <span>제목 색</span>
-            <input id="titleColor" type="color" value="#ffe14d" />
+            <input id="titleColor" type="color" value="#ffffff" />
           </label>
           <label class="field">
             <span>자막 크기</span>
@@ -73,8 +91,18 @@
           </label>
         </div>
 
+        <label class="field">
+          <span>클립 전환 효과</span>
+          <select id="transitionType">
+            <option value="fade">페이드</option>
+            <option value="slide">밀어내기</option>
+            <option value="zoom">줌</option>
+            <option value="flash">화이트 플래시</option>
+            <option value="none">없음</option>
+          </select>
+        </label>
+
         <div class="checks">
-          <label><input id="transition" type="checkbox" checked /> 페이드 전환</label>
           <label><input id="kenBurns" type="checkbox" checked /> 사진 줌 효과</label>
           <label><input id="progressBar" type="checkbox" checked /> 진행 바</label>
         </div>
@@ -113,6 +141,10 @@
         <button id="exportBtn" class="btn primary wide">⬇ 영상 내보내기</button>
         <button id="cancelExport" class="btn ghost" hidden>취소</button>
       </div>
+      <div class="extra-row">
+        <button id="saveThumb" class="btn small">🖼 현재 화면을 썸네일로 저장</button>
+        <button id="saveSrt" class="btn small">📝 자막 파일(SRT) 저장</button>
+      </div>
       <div id="exportStatus" class="status" hidden>
         <div class="bar"><div id="exportBar"></div></div>
         <span id="exportText"></span>
@@ -123,6 +155,7 @@
 
   <template id="clipTemplate">
     <li class="clip">
+      <div class="handle" title="끌어서 순서 바꾸기">⠿</div>
       <div class="thumb"></div>
       <div class="clip-body">
         <div class="clip-head">
@@ -130,6 +163,7 @@
           <div class="clip-actions">
             <button class="icon" data-act="up" title="위로">↑</button>
             <button class="icon" data-act="down" title="아래로">↓</button>
+            <button class="icon" data-act="dup" title="복제">⧉</button>
             <button class="icon danger" data-act="remove" title="삭제">✕</button>
           </div>
         </div>
