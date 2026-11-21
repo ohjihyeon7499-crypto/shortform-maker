@@ -5,13 +5,25 @@
 
 ## 실행 방법
 
+설치 없이 **링크만 열면** 바로 쓸 수 있어요. PC와 폰 모두 가능해요.
+
+- 웹사이트 주소: https://ohjihyeon7499-crypto.github.io/shortform-maker/ (GitHub Pages를 켠 뒤부터 열려요)
+
+### GitHub Pages 켜는 방법 (처음 한 번만)
+
+1. 저장소의 **Settings → Pages**로 들어가요.
+2. **Source**를 `Deploy from a branch`로 골라요.
+3. **Branch**에서 이 앱이 있는 브랜치와 `/ (root)` 폴더를 고르고 **Save**를 눌러요.
+4. 1~2분 뒤에 위 주소가 열려요.
+
+### 내 컴퓨터에서 실행하기 (개발용)
+
 ```bash
-# 이 폴더에서 아무 정적 서버나 실행
 python3 -m http.server 8000
 # 브라우저에서 http://localhost:8000 열기
 ```
 
-`index.html`을 더블클릭해서 열어도 동작하지만, 로컬 서버로 여는 쪽이 더 안정적입니다. **Chrome이나 Edge 최신 버전**을 권장합니다.
+**Chrome이나 Edge 최신 버전**을 권장해요.
 
 ## 기능
 

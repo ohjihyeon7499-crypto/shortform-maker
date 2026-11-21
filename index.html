@@ -140,6 +140,7 @@
       <div class="export-row">
         <button id="exportBtn" class="btn primary wide">⬇ 영상 내보내기</button>
         <button id="cancelExport" class="btn ghost" hidden>취소</button>
+        <button id="resaveBtn" class="btn" hidden>다시 저장</button>
       </div>
       <div class="extra-row">
         <button id="saveThumb" class="btn small">🖼 현재 화면을 썸네일로 저장</button>
@@ -152,6 +153,8 @@
       <p class="muted small-note">내보내기는 영상 길이만큼 실시간으로 녹화돼요. 녹화 중에는 이 탭을 열어 두세요.</p>
     </section>
   </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
 
   <template id="clipTemplate">
     <li class="clip">

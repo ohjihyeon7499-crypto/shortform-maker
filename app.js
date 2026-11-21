@@ -43,6 +43,7 @@ const state = {
   time: 0,
   clock: { startNow: 0, startT: 0 },
   export: null, // { recorder, chunks, cancelled }
+  lastExport: null, // { blob, filename } 마지막으로 만든 영상
 };
 
 let nextId = 1;
@@ -239,7 +240,7 @@ async function addFiles(files) {
     try {
       state.clips.push(await makeClip({ type, name: file.name, file }));
     } catch (err) {
-      alert(`"${file.name}" 파일을 열 수 없어요. 브라우저가 지원하지 않는 형식일 수 있어요.`);
+      notify(`"${file.name}" 파일을 열 수 없어요. 브라우저가 지원하지 않는 형식일 수 있어요.`);
     }
   }
   refresh();
@@ -655,7 +656,39 @@ function tick() {
 
 /* ---------------- 내보내기 ---------------- */
 
-function download(blob, filename) {
+// 화면 아래에 잠깐 보이는 안내 메시지 (alert 대신 사용)
+let toastTimer = null;
+function notify(text) {
+  const el = $('toast');
+  el.textContent = text;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 4000);
+}
+
+// Claude 아티팩트 화면 안에서는 일반 다운로드가 막혀 있어서 전용 저장 기능을 쓴다
+let downloadsPromise = null;
+function downloadsCapability() {
+  if (!window.claude?.use) return Promise.resolve(null);
+  if (!downloadsPromise) downloadsPromise = window.claude.use('downloads').catch(() => null);
+  return downloadsPromise;
+}
+const inClaudeViewer = () => !!window.claude?.use;
+
+// 결과: 'saved' | 'declined' | 'failed'
+async function download(blob, filename) {
+  const dl = await downloadsCapability();
+  if (dl) {
+    try {
+      await dl.save({ filename, data: blob });
+      return 'saved';
+    } catch (err) {
+      if (err?.code === 'declined') return 'declined';
+      if (err?.code === 'rate_limited') notify('저장 창이 이미 열려 있어요. 잠시 후 다시 눌러 주세요.');
+      else notify('이 화면에서는 파일을 저장할 수 없어요. 브라우저에서 열어 주세요.');
+      return 'failed';
+    }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -664,6 +697,7 @@ function download(blob, filename) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return 'saved';
 }
 
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
@@ -681,9 +715,9 @@ function pickMimeType() {
 }
 
 async function startExport() {
-  if (!state.clips.length) return alert('먼저 클립을 추가해 주세요.');
+  if (!state.clips.length) return notify('먼저 클립을 추가해 주세요.');
   if (!window.MediaRecorder || !canvas.captureStream) {
-    return alert('이 브라우저는 영상 녹화를 지원하지 않아요. 최신 Chrome 또는 Edge 를 사용해 주세요.');
+    return notify('이 브라우저는 영상 녹화를 지원하지 않아요. 최신 Chrome 또는 Edge 를 사용해 주세요.');
   }
 
   ensureAudio();
@@ -734,11 +768,23 @@ function onRecorderStop(ex) {
   }
   const type = (ex.mimeType || 'video/webm').split(';')[0];
   const ext = type.includes('mp4') ? 'mp4' : 'webm';
-  const blob = new Blob(ex.chunks, { type });
-  download(blob, `shortform-${stamp()}.${ext}`);
-  const mb = (blob.size / 1024 / 1024).toFixed(1);
-  $('exportText').textContent = `완료! ${ext.toUpperCase()} 파일(${mb}MB)을 저장했어요.`;
+  state.lastExport = { blob: new Blob(ex.chunks, { type }), filename: `shortform-${stamp()}.${ext}` };
   $('exportBar').style.width = '100%';
+  saveLastExport();
+}
+
+// 저장 창에서 취소했어도 다시 녹화하지 않고 바로 저장할 수 있게 결과를 들고 있는다
+async function saveLastExport() {
+  const ex = state.lastExport;
+  if (!ex) return;
+  const mb = (ex.blob.size / 1024 / 1024).toFixed(1);
+  const ext = ex.filename.split('.').pop().toUpperCase();
+  $('exportText').textContent = `${ext} 영상(${mb}MB) 완성! 저장하는 중…`;
+  const result = await download(ex.blob, ex.filename);
+  $('resaveBtn').hidden = false;
+  $('exportText').textContent = result === 'saved'
+    ? `완료! ${ext} 영상(${mb}MB)을 저장했어요.`
+    : `${ext} 영상(${mb}MB)이 준비됐어요. '다시 저장'을 눌러 저장하세요.`;
 }
 
 function setExporting(on) {
@@ -747,7 +793,7 @@ function setExporting(on) {
   $('cancelExport').hidden = !on;
   $('playBtn').disabled = on;
   $('seek').disabled = on;
-  for (const id of ['saveThumb', 'saveSrt', 'newProject']) $(id).disabled = on;
+  for (const id of ['saveThumb', 'saveSrt', 'newProject', 'resaveBtn']) $(id).disabled = on;
   const editor = document.querySelector('.editor');
   editor.style.pointerEvents = on ? 'none' : '';
   editor.style.opacity = on ? '0.5' : '';
@@ -760,7 +806,7 @@ function setExportProgress(p) {
 }
 
 function saveThumbnail() {
-  if (!state.clips.length) return alert('먼저 클립을 추가해 주세요.');
+  if (!state.clips.length) return notify('먼저 클립을 추가해 주세요.');
   if (state.playing) pause();
   render();
   canvas.toBlob((blob) => blob && download(blob, `thumbnail-${stamp()}.png`), 'image/png');
@@ -772,7 +818,7 @@ function srtTime(t) {
   return `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)},${pad(ms % 1000, 3)}`;
 }
 
-function saveSrt() {
+async function saveSrt() {
   const entries = [];
   let acc = 0;
   for (const c of state.clips) {
@@ -782,8 +828,15 @@ function saveSrt() {
     }
     acc += d;
   }
-  if (!entries.length) return alert('저장할 자막이 없어요.');
-  download(new Blob([entries.join('\n')], { type: 'text/plain;charset=utf-8' }), `subtitles-${stamp()}.srt`);
+  if (!entries.length) return notify('저장할 자막이 없어요.');
+  const blob = new Blob([entries.join('\n')], { type: 'text/plain;charset=utf-8' });
+  if (inClaudeViewer()) {
+    // 이 화면에서는 .srt 확장자를 저장할 수 없어서 내용은 SRT 그대로 .txt 로 저장한다
+    const result = await download(blob, `subtitles-${stamp()}.srt.txt`);
+    if (result === 'saved') notify('SRT 형식으로 저장했어요. 파일 이름 끝의 .txt 를 지우면 바로 쓸 수 있어요.');
+  } else {
+    download(blob, `subtitles-${stamp()}.srt`);
+  }
 }
 
 /* ---------------- 자동 저장 (IndexedDB) ---------------- */
@@ -863,8 +916,24 @@ async function restoreProject() {
   }
 }
 
+let newProjectArmed = null;
 function newProject() {
-  if (state.clips.length && !confirm('지금 작업을 지우고 새로 시작할까요?')) return;
+  const btn = $('newProject');
+  // 실수로 지우지 않도록 3초 안에 한 번 더 눌러야 지운다
+  if (state.clips.length && !newProjectArmed) {
+    btn.textContent = '한 번 더 누르면 모두 지워요';
+    btn.classList.add('danger');
+    newProjectArmed = setTimeout(() => {
+      newProjectArmed = null;
+      btn.textContent = '새 프로젝트';
+      btn.classList.remove('danger');
+    }, 3000);
+    return;
+  }
+  clearTimeout(newProjectArmed);
+  newProjectArmed = null;
+  btn.textContent = '새 프로젝트';
+  btn.classList.remove('danger');
   pause();
   state.clips.forEach(disposeClip);
   state.clips = [];
@@ -872,6 +941,8 @@ function newProject() {
   applySettingsRaw(DEFAULT_SETTINGS);
   state.time = 0;
   $('exportStatus').hidden = true;
+  $('resaveBtn').hidden = true;
+  state.lastExport = null;
   refresh();
 }
 
@@ -1076,6 +1147,7 @@ function bindUI() {
   $('seek').addEventListener('input', (e) => seek(+e.target.value));
   $('exportBtn').addEventListener('click', startExport);
   $('cancelExport').addEventListener('click', cancelExport);
+  $('resaveBtn').addEventListener('click', saveLastExport);
   $('saveThumb').addEventListener('click', saveThumbnail);
   $('saveSrt').addEventListener('click', saveSrt);
 
